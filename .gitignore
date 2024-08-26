@@ -1,4 +1,11 @@
-.idea
-data
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-docker-stats-exporter
+*.test
+
+*.out
+
+go.work
