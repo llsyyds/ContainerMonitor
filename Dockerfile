@@ -4,19 +4,20 @@ WORKDIR /app-build
 
 COPY ./ ./
 
-RUN go build
-
+RUN go build -o ContainerMonitor
 
 FROM scratch
 
-LABEL authors="Dexter Morganov"
 WORKDIR /app
 
-COPY --from=BUILDER /app-build/docker-stats-exporter ./
+COPY --from=BUILDER /app-build/src/ContainerMonitor ./
 
 VOLUME /var/run/docker.sock
 
 EXPOSE "9099"
 
-ENTRYPOINT ["/app/docker-stats-exporter"]
+ENTRYPOINT ["/app/ContainerMonitor"]
+
+CMD ["-port=9099"]
+
 
