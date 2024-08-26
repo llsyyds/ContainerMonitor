@@ -1,16 +1,18 @@
 FROM golang:1.22.5-alpine as BUILDER
 
+ENV GOPROXY=https://goproxy.cn,direct
+
 WORKDIR /app-build
 
 COPY ./ ./
 
-RUN go build -o ContainerMonitor
+RUN go build -o ContainerMonitor ./src
 
 FROM scratch
 
 WORKDIR /app
 
-COPY --from=BUILDER /app-build/src/ContainerMonitor ./
+COPY --from=BUILDER /app-build/ContainerMonitor ./
 
 VOLUME /var/run/docker.sock
 

@@ -88,18 +88,18 @@ func main() {
 	signal.Notify(chStop, os.Interrupt, os.Kill, syscall.SIGTERM)
 
 	// Scrape Handler
-	var defaultHttpPort = flag.String("port", "9099", "Port number to listen on for metrics")
+	defaultHttpPort := flag.Int("port", 9099, "Port number to listen on for metrics")
 	flag.Parse()
 	registry = prometheus.NewRegistry()
 	handler := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	http.Handle("/metrics", handler)
 	httpServer = &http.Server{
-		Addr:    fmt.Sprintf(":%d", defaultHttpPort),
+		Addr:    fmt.Sprintf(":%d", *defaultHttpPort),
 		Handler: nil,
 	}
 
 	go func(srv *http.Server) {
-		log.Println("Start scrape server on port:", defaultHttpPort)
+		log.Println("Start scrape server on port:", *defaultHttpPort)
 		if sErr := srv.ListenAndServe(); sErr != nil {
 			log.Fatal("Can not start http server:", sErr)
 		}

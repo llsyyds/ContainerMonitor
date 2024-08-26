@@ -95,7 +95,7 @@ func (m *TContainerMonitor) readStream() {
 	decoder := json.NewDecoder(stream.Body)
 
 	for {
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 		if m.stop {
 			break
 		}
