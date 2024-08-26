@@ -8,7 +8,6 @@ import (
 	"github.com/docker/docker/client"
 	"io"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -42,8 +41,6 @@ func (m *TContainerMonitor) GetOpt(name string) *TOpt {
 			Value: m.Labels,
 		}
 	}
-	m.Id = strconv.Itoa(0)
-	m.Name = ""
 
 	return nil
 }
