@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/docker/docker/client"
-	"io"
 	"log"
 	"time"
 )
@@ -91,40 +90,45 @@ func (m *TContainerMonitor) readStream() {
 	}
 	decoder := json.NewDecoder(stream.Body)
 
+	defer func() {
+		if m.OnRemove != nil {
+			m.OnRemove(m.Id)
+		}
+	}()
+
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
 	for {
-		time.Sleep(1 * time.Second)
-		if m.stop {
-			break
-		}
-
-		statistic := new(TContainerStatistic)
-		if er := decoder.Decode(statistic); er != nil {
-			if er != io.EOF {
-				log.Println("Error reading from input:", er)
+		select {
+		case <-ticker.C:
+			if m.stop {
+				return
 			}
-			m.stop = true
-			break
-		}
 
-		containerInspect, err := m.cli.ContainerInspect(context.Background(), m.Id)
-		if err != nil {
-			log.Println("Error inspecting container:", err)
-			return
-		}
-		containerState := containerInspect.State.Status // 获取容器的运行状态
-		statistic.RunningState = containerState
+			statistic := new(TContainerStatistic)
+			if er := decoder.Decode(statistic); er != nil {
+				log.Println("Error reading from input:", er)
+				return
+			}
 
-		if m.Name == "" {
-			m.Name = statistic.Name
-		}
+			containerInspect, err := m.cli.ContainerInspect(context.Background(), m.Id)
+			if err != nil {
+				log.Println("Error inspecting container:", err)
+				return
+			}
+			containerState := containerInspect.State.Status // 获取容器的运行状态
+			statistic.RunningState = containerState
 
-		statistic.Labels = m.Labels
+			if m.Name == "" {
+				m.Name = statistic.Name
+			}
 
-		if m.OnStatRead != nil {
-			m.OnStatRead(statistic)
+			statistic.Labels = m.Labels
+
+			if m.OnStatRead != nil {
+				m.OnStatRead(statistic)
+			}
 		}
-	}
-	if m.OnRemove != nil {
-		m.OnRemove(m.Id)
 	}
 }
